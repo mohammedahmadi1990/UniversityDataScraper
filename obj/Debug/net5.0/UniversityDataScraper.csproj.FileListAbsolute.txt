@@ -1,0 +1,16 @@
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.exe
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.deps.json
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.runtimeconfig.json
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.runtimeconfig.dev.json
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.dll
+D:\UniversityDataScraper\bin\Debug\net5.0\ref\UniversityDataScraper.dll
+D:\UniversityDataScraper\bin\Debug\net5.0\UniversityDataScraper.pdb
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.csproj.AssemblyReference.cache
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.GeneratedMSBuildEditorConfig.editorconfig
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.AssemblyInfoInputs.cache
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.AssemblyInfo.cs
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.csproj.CoreCompileInputs.cache
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.dll
+D:\UniversityDataScraper\obj\Debug\net5.0\ref\UniversityDataScraper.dll
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.pdb
+D:\UniversityDataScraper\obj\Debug\net5.0\UniversityDataScraper.genruntimeconfig.cache
