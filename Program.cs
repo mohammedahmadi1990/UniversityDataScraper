@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace UniversityDataScraper
 {
@@ -23,12 +24,7 @@ namespace UniversityDataScraper
         static void Main(string[] args)
         {
             // Global Fields
-            Dictionary<int, string> startLinks = new Dictionary<int, string>();
-            List<string> emails = new List<string>();
-            List<string> images = new List<string>();
-            List<string> pdfs = new List<string>();
-            List<string> inLinks = new List<string>();
-            List<string> outLinks = new List<string>();
+            Dictionary<int, string> startLinks = new Dictionary<int, string>();            
             MySqlConnection mysqlConnection;
 
             ///************* GET WEBSITES FROM DB *************
@@ -82,12 +78,21 @@ namespace UniversityDataScraper
             ///************* Start with Websites *************
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.Eager;
-            options.AddArgument("--headless");
-            IWebDriver driver = new ChromeDriver(@"D:\", options);
-            foreach (var link in startLinks)
-            {                
-                inLinks.Add(link.Value);
-                int websiteId = link.Key;
+            options.AddArgument("--headless");            
+            var websites = startLinks.Select(z => z.Value).ToArray();
+            var ids = startLinks.Select(z => z.Key).ToArray();
+
+            Parallel.For(0, websites.Length, new ParallelOptions { MaxDegreeOfParallelism = 1 }, t =>
+            {
+                IWebDriver driver = new ChromeDriver(@"D:\", options);
+                List<string> emails = new List<string>();
+                List<string> images = new List<string>();
+                List<string> pdfs = new List<string>();
+                List<string> inLinks = new List<string>();
+                List<string> outLinks = new List<string>();
+
+                inLinks.Add(websites[t]);
+                int websiteId = ids[t];
 
                 ///************* CRAWL *************                                            
                 for (int i = 0; i < inLinks.Count; i++)
@@ -170,14 +175,11 @@ namespace UniversityDataScraper
                 ///************* END *************
 
                 ///************* FREE UP *************
-                images = new List<string>();
-                pdfs = new List<string>();
-                inLinks = new List<string>();
-                outLinks = new List<string>();
-                emails = new List<string>();
+                driver.Close();
                 ///************* END *************
-            }
-            driver.Close();
+
+            });
+
             Console.Write("End");
         }
 
