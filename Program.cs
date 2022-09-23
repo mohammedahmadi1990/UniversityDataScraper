@@ -79,133 +79,136 @@ namespace UniversityDataScraper
             }
             ///************* END *************
 
-            ///************* REFINE DATA *************
-            foreach (var link in startLinks)
-            {
-                if (!inLinks.Contains(link.Value))
-                    inLinks.Add(link.Value);
-
-                if (inLinks.Count > 0)
-                    break;
-            }
-            ///************* END *************
-
-            ///************* CRAWEL IN A WEBSITE *************            
+            ///************* Start with Websites *************
             ChromeOptions options = new ChromeOptions();
             options.PageLoadStrategy = PageLoadStrategy.Eager;
+            options.AddArgument("--headless");
             IWebDriver driver = new ChromeDriver(@"D:\", options);
-            int websiteId = startLinks.Keys.ToArray()[0];
-             
-            for (int i = 0; i < inLinks.Count; i++)
-            {
-                // Check the page for inlinks, outlinks, pdfs
-                Uri uri = new Uri(inLinks[i]);
-                driver.Url = inLinks[i];
-                
-                var linkLists = driver.FindElements(By.TagName("a"));
-                foreach (var ln in linkLists)
-                {
-                    string currentLink = ln.GetAttribute("href");
-                    parseLink(ln.GetAttribute("href"), uri, emails, pdfs, inLinks, outLinks);
-                }
+            foreach (var link in startLinks)
+            {                
+                inLinks.Add(link.Value);
+                int websiteId = link.Key;
 
-                // Check the page for images
-                var imgs = driver.FindElements(By.TagName("img"));
-                foreach (var img in imgs)
+                ///************* CRAWL *************                                            
+                for (int i = 0; i < inLinks.Count; i++)
                 {
-                    string src = img.GetAttribute("src");
-                    parseImg(src, images);
-                }
+                    // Check the page for inlinks, outlinks, pdfs
+                    Uri uri = new Uri(inLinks[i]);
+                    driver.Url = inLinks[i];
 
-                // Check the page for emails
-                //var fnts = driver.FindElements(By.("font"));
-                //foreach (var font in fnts)
-                //{
-                    extractEmails(driver.PageSource, emails);
-                //}
-
-                // Check possible frames
-                var frames = driver.FindElements(By.TagName("frame"));
-                foreach (var frame in frames)
-                {
-                    var src = frame.GetAttribute("src");
-                    inLinks.Add(src);
-                }
-            }
-            ///************* END *************
-
-            ///************* SAVE STARTING LINKS *************
-            if (images.Count>0)
-                saveCSV("Image", images, websiteId);
-            if (pdfs.Count > 0)
-                saveCSV("PDF", pdfs, websiteId);
-            if (inLinks.Count > 0) {
-                saveCSV("Local Links", inLinks, websiteId);
-            }
-            if (outLinks.Count > 0)
-                saveCSV("External Links", outLinks, websiteId);
-            if (emails.Count > 0)
-            {
-                try
-                {
-                    string query = "INSERT INTO `email_directory` (`id`,`email`,`university_id`) VALUES ";
-                    int s = 1;
-                    foreach (string email in emails)
+                    var linkLists = driver.FindElements(By.TagName("a"));
+                    if (linkLists.Count > 0)
                     {
-                        query = query + "(default,'" + email + "'," + websiteId + "), ";
-                        s++;
+                        foreach (var ln in linkLists)
+                        {
+                            string currentLink = ln.GetAttribute("href");
+                            parseLink(ln.GetAttribute("href"), uri, emails, pdfs, inLinks, outLinks);
+                        }
                     }
-                    query = query.Substring(0, query.Length - 2) + ";";                    
-                    mysqlConnection = new MySqlConnection(connString);
-                    mysqlConnection.Open();
-                    MySqlCommand cmd = new MySqlCommand(query, mysqlConnection);
-                    
-                    cmd.ExecuteNonQuery();
-                    mysqlConnection.Close();
-                }
-                catch (MySqlException ex)
-                {
-                    Console.WriteLine("Error! Some of Items have been added previously.");
-                }
-            }
-            ///************* END *************
-            
-            ///************* FREE UP *************
-            images = new List<string>();
-            pdfs = new List<string>();
-            inLinks = new List<string>();
-            outLinks = new List<string>();
-            emails = new List<string>();
-            ///************* END *************
-            Console.Write("End");
 
+                    // Check the page for images
+                    var imgs = driver.FindElements(By.TagName("img"));
+                    if (imgs.Count > 0)
+                    {
+                        foreach (var img in imgs)
+                        {
+                            string src = img.GetAttribute("src");
+                            parseImg(src, images);
+                        }
+                    }
+
+                    // Check the page for emails
+                    extractEmails(driver.PageSource, emails);
+
+                    // Check possible frames
+                    var frames = driver.FindElements(By.TagName("frame"));
+                    if (frames.Count > 0)
+                    {
+                        foreach (var frame in frames)
+                        {
+                            var src = frame.GetAttribute("src");
+                            inLinks.Add(src);
+                        }
+                    }
+
+                }
+                ///************* END *************
+
+                ///************* SAVE *************
+                if (images.Count > 0)
+                    saveCSV("Images", images, websiteId);
+                if (pdfs.Count > 0)
+                    saveCSV("PDFs", pdfs, websiteId);
+                if (inLinks.Count > 0)                
+                    saveCSV("LocLinks", inLinks, websiteId);               
+                if (outLinks.Count > 0)
+                    saveCSV("ExtLinks", outLinks, websiteId);
+                if (emails.Count > 0)
+                {
+                    try
+                    {
+                        string query = "INSERT INTO `email_directory` (`id`,`email`,`university_id`) VALUES ";
+                        int s = 1;
+                        foreach (string email in emails)
+                        {
+                            query = query + "(default,'" + email + "'," + websiteId + "), ";
+                            s++;
+                        }
+                        query = query.Substring(0, query.Length - 2) + ";";
+                        mysqlConnection = new MySqlConnection(connString);
+                        mysqlConnection.Open();
+                        MySqlCommand cmd = new MySqlCommand(query, mysqlConnection);
+
+                        cmd.ExecuteNonQuery();
+                        mysqlConnection.Close();
+                    }
+                    catch (MySqlException ex)
+                    {
+                        Console.WriteLine("Error! Some of Items have been added previously.");
+                    }
+                }
+                ///************* END *************
+
+                ///************* FREE UP *************
+                images = new List<string>();
+                pdfs = new List<string>();
+                inLinks = new List<string>();
+                outLinks = new List<string>();
+                emails = new List<string>();
+                ///************* END *************
+            }
+            driver.Close();
+            Console.Write("End");
         }
 
         private static void parseLink(string link, Uri uri, List<string> emailList, List<string> pdfList, List<string> inLinkList, List<string> outLinkList)
         {
-            if (link.Contains("pdf"))
+            if (link != null)
             {
-                if (!pdfList.Contains(link))
-                    pdfList.Add(link);
-            }
-            else if (link.Contains("doc") || link.Contains("docx") || link.Contains("xls") || link.Contains("xlsx") || link.Contains("txt"))
-            {
-                ;
-            }            
-            else if (link.Contains("mailto"))
-            {
-                if (!emailList.Contains(link.Substring(7)))
-                    emailList.Add(link.Substring(7));
-            }
-            else if (!link.Contains(uri.Host))
-            {
-                if (!outLinkList.Contains(link))
-                    outLinkList.Add(link);
-            }
-            else
-            {
-                if (!inLinkList.Contains(link))
-                    inLinkList.Add(link);
+                if (link.Contains("pdf"))
+                {
+                    if (!pdfList.Contains(link))
+                        pdfList.Add(link);
+                }
+                else if (link.Contains("doc") || link.Contains("docx") || link.Contains("xls") || link.Contains("xlsx") || link.Contains("txt"))
+                {
+                    ;
+                }
+                else if (link.Contains("mailto"))
+                {
+                    if (!emailList.Contains(link.Substring(7)))
+                        emailList.Add(link.Substring(7));
+                }
+                else if (!link.Contains(uri.Host))
+                {
+                    if (!outLinkList.Contains(link) && isValidUrl(link))
+                        outLinkList.Add(link);
+                }
+                else
+                {
+                    if (!inLinkList.Contains(link))
+                        inLinkList.Add(link);
+                }
             }
         }
 
@@ -217,8 +220,8 @@ namespace UniversityDataScraper
 
         private static void saveCSV(string title, List<string> list, int id)
         {
-            string folder = @"D:\";
-            string fileName = title + " " + id + ".csv";
+            string folder = @"D:\results\";
+            string fileName = title + "_" + id + ".csv";
             string fullPath = folder + fileName;
             list.Insert(0, title);
             string[] items = list.ToArray();    
